@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "esbuild src/index.ts --bundle --outdir=dist && tsc --emitDeclarationOnly --outDir dist"
+    "build": "esbuild src/index.ts --bundle --platform=node --target=node12 --outdir=dist && tsc --emitDeclarationOnly --outDir dist"
   },
   "repository": {
     "type": "git",
@@ -52,5 +52,8 @@
     "*.ts": [
       "npm run lint:fix"
     ]
+  },
+  "dependencies": {
+    "assert": "^2.0.0"
   }
 }

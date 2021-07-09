@@ -2,29 +2,28 @@ module.exports = {
   env: {
     es6: true,
     browser: true,
-    node: true,
+    node: true
   },
   extends: [
     'standard',
     'plugin:import/recommended',
     'plugin:jsonc/recommended-with-jsonc',
-    'plugin:@typescript-eslint/recommended',
+    'plugin:@typescript-eslint/recommended'
   ],
-  plugins: ['html', 'unicorn'],
   settings: {
     'import/resolver': {
-      node: { extensions: ['.js', '.mjs', '.ts', '.d.ts'] },
-    },
+      node: { extensions: ['.js', '.mjs', '.ts', '.d.ts'] }
+    }
   },
   overrides: [
     {
       files: ['*.json', '*.json5'],
       parser: 'jsonc-eslint-parser',
       rules: {
-        'quotes': ['error', 'double'],
+        quotes: ['error', 'double'],
         'quote-props': ['error', 'always'],
-        'comma-dangle': ['error', 'never'],
-      },
+        'comma-dangle': ['error', 'never']
+      }
     },
     {
       files: ['package.json'],
@@ -57,19 +56,33 @@ module.exports = {
               'peerDependenciesMeta',
               'dependencies',
               'devDependencies',
-              'eslintConfig',
-            ],
+              'eslintConfig'
+            ]
           },
           {
             pathPattern: '^(?:dev|peer|optional|bundled)?[Dd]ependencies$',
-            order: { type: 'asc' },
-          },
-        ],
-      },
-    },
+            order: { type: 'asc' }
+          }
+        ]
+      }
+    }
   ],
   rules: {
+    '@typescript-eslint/member-delimiter-style': ['error', {
+      multiline: {
+        delimiter: 'none',
+        requireLast: true
+      },
+      singleline: {
+        delimiter: 'semi',
+        requireLast: false
+      }
+    }],
+
+    indent: 'off',
     'no-unused-vars': 'off',
+    'no-useless-constructor': 'off',
+
     '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/explicit-member-accessibility': 'off',
     '@typescript-eslint/no-explicit-any': 'off',
@@ -80,6 +93,6 @@ module.exports = {
     '@typescript-eslint/no-non-null-assertion': 'off',
     '@typescript-eslint/ban-ts-comment': 'off',
     '@typescript-eslint/explicit-module-boundary-types': 'off',
-    '@typescript-eslint/ban-types': 'off',
+    '@typescript-eslint/ban-types': 'off'
   }
 }
