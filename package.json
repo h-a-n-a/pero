@@ -1,7 +1,7 @@
 {
   "name": "pero",
   "version": "0.0.0",
-  "description": "",
+  "description": "declarative cli generator",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
