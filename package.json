@@ -1,0 +1,19 @@
+{
+  "name": "pero",
+  "version": "0.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/h-a-n-a/pero.git"
+  },
+  "author": "h-a-n-a <andywangsy@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/h-a-n-a/pero/issues"
+  },
+  "homepage": "https://github.com/h-a-n-a/pero#readme"
+}
