@@ -1,95 +1,56 @@
 import { existsSync, readdirSync, statSync } from 'fs'
 import { join } from 'path'
 
-export enum IdentifierType {
-  'COLON' = 'COLON',
-  'VARIADIC' = 'VARIADIC',
-}
-
-const IDENTIFIER_MAP: Record<IdentifierType, string> = {
-  [IdentifierType.COLON]: ':',
-  [IdentifierType.VARIADIC]: '...',
-}
-
-export interface PathOptions {
+export interface RouteOptions {
   // absolute root path
   root: string
+  ignorePattern?: RegExp
 }
 
 export interface Route {
-  identifierType: IdentifierType | null
   isDir: boolean
   path: string
   relPath: string
   name: string
-  rawName: string
   children: Route[]
 }
 
-type NameParsed = Pick<Route, 'identifierType' | 'rawName' | 'name'>
+const FILE_NAME_RE = /^index\.(ts|js)$/
 
-const parseDirectoryName = (rawName: string): NameParsed => {
-  const startsWith = rawName.startsWith.bind(rawName) as String['startsWith']
-
-  for (const [identifierType, identifier] of Object.entries(IDENTIFIER_MAP) as [
-    IdentifierType,
-    string
-  ][]) {
-    if (startsWith(identifier)) {
-      return {
-        name: rawName.replace(identifier, ''),
-        rawName,
-        identifierType,
-      }
-    }
-  }
-
-  return {
-    rawName,
-    name: rawName,
-    identifierType: null,
-  }
-}
-
-const genPath = (root: string, relPath = '.'): Route[] => {
+const genPath = ({ root, ignorePattern }: RouteOptions, relPath = '.'): Route[] => {
   const currentDir = readdirSync(root, {
-    withFileTypes: true,
+    withFileTypes: true
   })
 
   return currentDir.reduce<Route[]>((routes, content) => {
     const isDir = content.isDirectory()
-    const rawName = content.name
-    const absPath = join(root, rawName)
-    const innerRelPath = join(relPath, rawName)
+    const name = content.name
+    const absPath = join(root, name)
+    const innerRelPath = join(relPath, name)
 
-    const nameParsed = isDir
-      ? parseDirectoryName(rawName)
-      : {
-          rawName,
-          name: rawName,
-          identifierType: null,
-        }
+    if (ignorePattern && name.match(ignorePattern)) return routes
+    if (!isDir && !name.match(FILE_NAME_RE)) return routes
 
     return [
       ...routes,
       {
-        ...nameParsed,
+        name,
         isDir,
         path: absPath,
         relPath: innerRelPath,
-        children: isDir ? genPath(absPath, innerRelPath) : ([] as Route[]),
-      },
+        children: isDir ? genPath({ root: absPath, ignorePattern }, innerRelPath) : ([] as Route[])
+      }
     ]
   }, [])
 }
 
-export const getRoute = (options: PathOptions): Route[] => {
-  const { root } = options
+export const getRoute = (options: RouteOptions): Route[] => {
+  const { root, ignorePattern } = options
 
   const rootPath = root
 
   if (!existsSync(rootPath)) return []
   if (!statSync(rootPath).isDirectory()) return []
 
-  return genPath(root)
+  return genPath({ root, ignorePattern })
 }
