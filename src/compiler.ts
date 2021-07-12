@@ -8,13 +8,28 @@ interface CompileOptions extends RouteOptions {
   outDir: string
 }
 
-class Compiler {
-  constructor (public options: CompileOptions) {}
+const PERO_CLI_EMIT_DIRECTORY_NAME = '.pero-cli'
+const PERO_RUNTIME_NAME = 'pero.js'
 
-  compile () {
-    const { root, ignorePattern, outDir } = this.options
+class Compiler {
+  private readonly cliPath: string
+
+  constructor (public options: CompileOptions) {
+    this.cliPath = path.join(this.options.outDir, PERO_CLI_EMIT_DIRECTORY_NAME)
+  }
+
+  async compile () {
+    const { outDir } = this.options
 
     if (existsSync(outDir)) rmdirSync(outDir, { recursive: true })
+
+    await this.compileRoutes()
+    await this.compileRuntime()
+  }
+
+  compileRoutes () {
+    const { root, ignorePattern } = this.options
+    const outDir = this.cliPath
 
     const routes = getRoute({
       root,
@@ -45,6 +60,30 @@ class Compiler {
 
       return esbuild.build(buildOptions)
     }
+  }
+
+  compileRuntime () {
+    const { outDir } = this.options
+
+    return esbuild.build({
+      stdin: {
+        contents: `
+            import path from 'path'
+            import Command from './command.ts' 
+            
+            const result = Command.init({
+              root: path.resolve(__dirname, '${PERO_CLI_EMIT_DIRECTORY_NAME}') 
+            })
+            
+            console.log(JSON.stringify(result, null, 4))
+        `,
+        resolveDir: path.resolve(__dirname)
+      },
+      platform: 'node',
+      format: 'cjs',
+      outfile: path.join(outDir, PERO_RUNTIME_NAME),
+      bundle: true
+    })
   }
 }
 
