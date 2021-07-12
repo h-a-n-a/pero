@@ -1,4 +1,6 @@
 import Command from './command'
-export { Command }
+import Compiler from './compiler'
+
+export { Command, Compiler }
 
 export * from './route'
