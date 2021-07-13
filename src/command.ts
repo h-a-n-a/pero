@@ -1,7 +1,12 @@
 import { RouteOptions, Route, getRoute } from './route'
 import { getEntryDefault } from './exec'
 
-interface CommandOptions extends RouteOptions {}
+interface CommandOptions extends RouteOptions {
+  /**
+   * CLI Name
+   */
+  name: string
+}
 
 interface CommandConfigOption {
   name: string
@@ -9,69 +14,81 @@ interface CommandConfigOption {
   defaultValue?: any
 }
 
-type CommandFunction = (option: Command['option']) => () => void
+type ActionFunction = () => void
+
+type CommandFunction = (option: Command['option']) => ActionFunction
 
 interface CommandConfig {
   name: string
   options: CommandConfigOption[]
-  commandFunction: ReturnType<CommandFunction>
+  action: ActionFunction
   children: CommandConfig[]
 }
 
 const createCommandConfig = (commandName: string): CommandConfig => ({
   name: commandName,
   options: [],
-  commandFunction: () => {},
+  action: () => {},
   children: []
 })
+
+const DEFAULT_CLI_NAME = 'pero-cli'
 
 class Command {
   private readonly routes: Route[]
 
-  private commandConfig: CommandConfig = createCommandConfig('')
-  private registeringCommand: CommandConfig
+  private readonly registeredCommands: CommandConfig
+  private registeringCommand: CommandConfig | null = null
 
-  constructor (options: CommandOptions) {
+  constructor (private options: CommandOptions) {
     this.routes = getRoute({
       root: options.root,
       ignorePattern: options.ignorePattern
     })
 
-    this.registeringCommand = this.commandConfig
+    this.registeredCommands = createCommandConfig(this.options.name || DEFAULT_CLI_NAME)
+    this.registeringCommand = this.registeredCommands
     this.registerRoutes(this.routes)
   }
 
   private registerRoutes (routes: Route[]) {
     for (const r of routes) {
       if (r.isDir) {
-        const commandConfig = createCommandConfig(r.name)
+        const registeredCommands = createCommandConfig(r.name)
 
         // register child command
-        this.registeringCommand.children.push(commandConfig)
+        this.registeringCommand?.children.push(registeredCommands)
         // switch current working command
-        this.registeringCommand = commandConfig
+        this.registeringCommand = registeredCommands
 
         this.registerRoutes(r.children)
         continue
       }
 
-      const defaultExport = getEntryDefault(r.path) as CommandFunction
-
+      const defaultExport = (getEntryDefault(r.path) || (() => () => {})) as CommandFunction
       const currentCommand = this.registeringCommand
-      currentCommand.commandFunction = defaultExport.apply(this, [
-        this.option.bind(this)
-      ])
+
+      if (currentCommand) {
+        currentCommand.action = defaultExport.apply(this, [
+         this.option.bind(this)
+        ])
+      }
     }
   }
 
   option (syntax: string, description?: string, defaultValue?: any) {
     const currentCommand = this.registeringCommand
 
-    currentCommand.options.push({
+    currentCommand?.options.push({
       name: syntax,
       description,
       defaultValue
     })
+  }
+
+  parse (argv = process.argv) {
+    argv = argv.slice(2)
+    console.log(argv)
   }
 
   static init (options: CommandOptions) {

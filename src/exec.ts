@@ -1,29 +1,24 @@
-import esbuild from 'esbuild'
+import { readFileSync } from 'fs'
 
 /**
  * Get entry's default export
  * @param filePath Absolute file path to exec
  */
 export const getEntryDefault = (filePath: string) => {
-  const result = esbuild.buildSync({
-    entryPoints: [filePath],
-    bundle: true,
-    write: false,
-    format: 'cjs'
-  })
-
-  const file = result.outputFiles[0]
+  const fileText = readFileSync(filePath, 'utf-8')
 
   const entryModule: any = {
     exports: {}
   }
   const entryExports = entryModule.exports
 
-  new Function('module', 'exports', file.text)(entryModule, entryExports)
+  new Function('module', 'exports', fileText)(entryModule, entryExports)
 
-  if (entryExports.__esModule) {
-    return entryExports.default
+  // es module default export
+  if (entryModule.exports.__esModule) {
+    return typeof entryModule.exports.default === 'function' ? entryModule.exports.default : null
   }
 
-  return entryModule.exports
+  // cjs export
+  return typeof entryModule.exports === 'function' ? entryModule.exports : null
 }

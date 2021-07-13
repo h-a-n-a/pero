@@ -1,14 +1,15 @@
 import path from 'path'
 import { existsSync, rmdirSync } from 'fs'
-import esbuild, { BuildOptions } from 'esbuild'
+import * as esbuild from 'esbuild'
+import { BuildResult, BuildOptions } from 'esbuild'
 
-import { getRoute, RouteOptions } from './route'
+import { getRoute, RouteOptions, Route } from './route'
 
 interface CompileOptions extends RouteOptions {
   outDir: string
 }
 
-const PERO_CLI_EMIT_DIRECTORY_NAME = '.pero-cli'
+const PERO_CLI_EMIT_DIRECTORY_NAME = 'pero-cli'
 const PERO_RUNTIME_NAME = 'pero.js'
 
 class Compiler {
@@ -36,26 +37,31 @@ class Compiler {
       ignorePattern
     })
 
-    const compileTasks = routes.map(r => {
-      return Promise.all([
-        compileSingle(r.path, path.join(outDir, r.relPath), r.isDir),
-        ...r.children.map(c => compileSingle(c.path, r.relPath, r.isDir))
-      ])
-    })
+    return compileRoute(routes)
 
-    return Promise.all(compileTasks)
+    function compileRoute (routes: Route[]): Promise<BuildResult[]> {
+      return routes.reduce<Promise<BuildResult[]>>(async (buildResults, route) => {
+        if (route.isDir) {
+          return [
+            ...await buildResults,
+            ...(await compileRoute(route.children))
+          ]
+        }
 
-    function compileSingle (inputPath: string, outPath: string, isDir: boolean) {
+        return [
+          ...await buildResults,
+          await compileSingle(route.path, path.join(outDir, route.relPath)),
+          ...(await compileRoute(route.children))
+        ]
+      }, Promise.resolve([]))
+    }
+
+    function compileSingle (inputPath: string, outPath: string) {
       const buildOptions: BuildOptions = {
         entryPoints: [inputPath],
         bundle: true,
-        format: 'cjs'
-      }
-
-      if (isDir) {
-        buildOptions.outdir = outPath
-      } else {
-        buildOptions.outfile = outPath.replace('.ts', '.js')
+        format: 'cjs',
+        outfile: outPath.replace('.ts', '.js')
       }
 
       return esbuild.build(buildOptions)
@@ -75,7 +81,8 @@ class Compiler {
               root: path.resolve(__dirname, '${PERO_CLI_EMIT_DIRECTORY_NAME}') 
             })
             
-            console.log(JSON.stringify(result, null, 4))
+            console.log(result.registeredCommands)
+            console.log(result.parse())
         `,
         resolveDir: path.resolve(__dirname)
       },
