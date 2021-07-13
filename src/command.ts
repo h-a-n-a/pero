@@ -9,8 +9,8 @@ interface CommandOptions extends RouteOptions {
 }
 
 interface CommandConfigOption {
-  name: string
-  description?: string
+  flagExpression: string
+  description: string
   defaultValue?: any
 }
 
@@ -18,8 +18,9 @@ type ActionFunction = () => void
 
 type CommandFunction = (option: Command['option']) => ActionFunction
 
-interface CommandConfig {
+export interface CommandConfig {
   name: string
+  description: string
   options: CommandConfigOption[]
   action: ActionFunction
   children: CommandConfig[]
@@ -27,6 +28,7 @@ interface CommandConfig {
 
 const createCommandConfig = (commandName: string): CommandConfig => ({
   name: commandName,
+  description: '',
   options: [],
   action: () => {},
   children: []
@@ -76,11 +78,11 @@ class Command {
     }
   }
 
-  option (syntax: string, description?: string, defaultValue?: any) {
+  option (flagExpression: string, description: string, defaultValue?: any) {
     const currentCommand = this.registeringCommand
 
     currentCommand?.options.push({
-      name: syntax,
+      flagExpression,
       description,
       defaultValue
     })
