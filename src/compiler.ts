@@ -81,7 +81,7 @@ class Compiler {
               root: path.resolve(__dirname, '${PERO_CLI_EMIT_DIRECTORY_NAME}') 
             })
             
-            console.log(result.registeredCommands)
+            console.log(JSON.stringify(result.registeredCommands, null, 4))
             console.log(result.parse())
         `,
         resolveDir: path.resolve(__dirname)

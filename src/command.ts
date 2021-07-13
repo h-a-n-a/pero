@@ -1,3 +1,5 @@
+import assert from 'assert'
+import mri, { Argv } from 'mri'
 import { RouteOptions, Route, getRoute } from './route'
 import { getEntryDefault } from './exec'
 
@@ -8,25 +10,24 @@ interface CommandOptions extends RouteOptions {
   name: string
 }
 
-interface CommandConfigOption {
+interface SingleCommandOption {
   flagExpression: string
   description: string
-  defaultValue?: any
 }
 
 type ActionFunction = () => void
 
 type CommandFunction = (option: Command['option']) => ActionFunction
 
-export interface CommandConfig {
+export interface SingleCommand {
   name: string
   description: string
-  options: CommandConfigOption[]
+  options: SingleCommandOption[]
   action: ActionFunction
-  children: CommandConfig[]
+  children: SingleCommand[]
 }
 
-const createCommandConfig = (commandName: string): CommandConfig => ({
+const createSingleCommand = (commandName: string): SingleCommand => ({
   name: commandName,
   description: '',
   options: [],
@@ -39,8 +40,8 @@ const DEFAULT_CLI_NAME = 'pero-cli'
 class Command {
   private readonly routes: Route[]
 
-  private readonly registeredCommands: CommandConfig
-  private registeringCommand: CommandConfig | null = null
+  private readonly registeredCommands: SingleCommand
+  private registeringCommand: SingleCommand | null = null
 
   constructor (private options: CommandOptions) {
     this.routes = getRoute({
@@ -48,22 +49,26 @@ class Command {
       ignorePattern: options.ignorePattern
     })
 
-    this.registeredCommands = createCommandConfig(this.options.name || DEFAULT_CLI_NAME)
+    this.registeredCommands = createSingleCommand(this.options.name || DEFAULT_CLI_NAME)
     this.registeringCommand = this.registeredCommands
-    this.registerRoutes(this.routes)
+    this.registerCommand(this.routes)
   }
 
-  private registerRoutes (routes: Route[]) {
+  private registerCommand (routes: Route[]) {
+    const currentWorkingCommand = this.registeredCommands
     for (const r of routes) {
       if (r.isDir) {
-        const registeredCommands = createCommandConfig(r.name)
+        const registeredCommands = createSingleCommand(r.name)
 
         // register child command
         this.registeringCommand?.children.push(registeredCommands)
         // switch current working command
         this.registeringCommand = registeredCommands
 
-        this.registerRoutes(r.children)
+        this.registerCommand(r.children)
+
+        // backtrack to parent
+        this.registeringCommand = currentWorkingCommand
         continue
       }
 
@@ -78,19 +83,41 @@ class Command {
     }
   }
 
-  option (flagExpression: string, description: string, defaultValue?: any) {
+  option (flagExpression: string, description: string) {
     const currentCommand = this.registeringCommand
+    console.log('currentCommand', currentCommand)
 
     currentCommand?.options.push({
       flagExpression,
-      description,
-      defaultValue
+      description
     })
   }
 
   parse (argv = process.argv) {
     argv = argv.slice(2)
-    console.log(argv)
+    const parsedArgv = mri(argv)
+    const commands = parsedArgv._
+
+    const findMatchedCommands = (registeredCommands: SingleCommand, commands: Argv['_']): SingleCommand => {
+      const targetCommand = commands[0]
+
+      // bailout if command is not exist
+      if (!targetCommand) return registeredCommands
+
+      for (const command of registeredCommands.children) {
+        // command matched!
+        if (command.name === targetCommand) {
+          // Switch to next user input command
+          return findMatchedCommands(command, commands.slice(1))
+        }
+      }
+
+      assert(false, 'Command not found')
+    }
+
+    const targetCommand = findMatchedCommands(this.registeredCommands, commands)
+
+    console.log(targetCommand)
   }
 
   static init (options: CommandOptions) {

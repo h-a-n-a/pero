@@ -1,9 +1,9 @@
 import table from 'text-table'
 
-import { CommandConfig } from './command'
+import { SingleCommand } from './command'
 
 class Renderer {
-  constructor (public config: CommandConfig) {}
+  constructor (public config: SingleCommand) {}
 
   render () {
     this.renderUsage()
@@ -90,7 +90,7 @@ const config = {
       children: []
     }
   ]
-} as unknown as CommandConfig
+} as unknown as SingleCommand
 
 // new Renderer().renderUsage(config)
 const renderer = new Renderer(config)

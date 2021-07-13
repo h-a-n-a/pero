@@ -1,24 +1,16 @@
-import { readFileSync } from 'fs'
-
 /**
  * Get entry's default export
  * @param filePath Absolute file path to exec
  */
 export const getEntryDefault = (filePath: string) => {
-  const fileText = readFileSync(filePath, 'utf-8')
-
-  const entryModule: any = {
-    exports: {}
-  }
-  const entryExports = entryModule.exports
-
-  new Function('module', 'exports', fileText)(entryModule, entryExports)
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const moduleExports = require(filePath)
 
   // es module default export
-  if (entryModule.exports.__esModule) {
-    return typeof entryModule.exports.default === 'function' ? entryModule.exports.default : null
+  if (moduleExports.__esModule) {
+    return typeof moduleExports.default === 'function' ? moduleExports.default : null
   }
 
   // cjs export
-  return typeof entryModule.exports === 'function' ? entryModule.exports : null
+  return typeof moduleExports === 'function' ? moduleExports : null
 }
