@@ -75,14 +75,14 @@ class Compiler {
       stdin: {
         contents: `
             import path from 'path'
-            import Command from './command.ts' 
+            import Command from './command' 
             
-            const result = Command.init({
+            const cli = Command.init({
               root: path.resolve(__dirname, '${PERO_CLI_EMIT_DIRECTORY_NAME}') 
             })
             
-            console.log(JSON.stringify(result.registeredCommands, null, 4))
-            console.log(result.parse())
+            // console.log(JSON.stringify(cli.registeredCommands, null, 4))
+            cli.parse()
         `,
         resolveDir: path.resolve(__dirname)
       },

@@ -1,5 +1,7 @@
 import assert from 'assert'
 import mri, { Argv } from 'mri'
+
+import Renderer from './renderer'
 import { RouteOptions, Route, getRoute } from './route'
 import { getEntryDefault } from './exec'
 
@@ -25,6 +27,7 @@ export interface SingleCommand {
   options: SingleCommandOption[]
   action: ActionFunction
   children: SingleCommand[]
+  parent: SingleCommand | null
 }
 
 const createSingleCommand = (commandName: string): SingleCommand => ({
@@ -32,7 +35,8 @@ const createSingleCommand = (commandName: string): SingleCommand => ({
   description: '',
   options: [],
   action: () => {},
-  children: []
+  children: [],
+  parent: null
 })
 
 const DEFAULT_CLI_NAME = 'pero-cli'
@@ -55,10 +59,13 @@ class Command {
   }
 
   private registerCommand (routes: Route[]) {
-    const currentWorkingCommand = this.registeredCommands
+    const currentWorkingCommand = this.registeringCommand
+
     for (const r of routes) {
       if (r.isDir) {
         const registeredCommands = createSingleCommand(r.name)
+
+        registeredCommands.parent = this.registeringCommand
 
         // register child command
         this.registeringCommand?.children.push(registeredCommands)
@@ -85,7 +92,6 @@ class Command {
 
   option (flagExpression: string, description: string) {
     const currentCommand = this.registeringCommand
-    console.log('currentCommand', currentCommand)
 
     currentCommand?.options.push({
       flagExpression,
@@ -117,7 +123,11 @@ class Command {
 
     const targetCommand = findMatchedCommands(this.registeredCommands, commands)
 
+    targetCommand.action()
+
     console.log(targetCommand)
+
+    new Renderer(this, targetCommand).render()
   }
 
   static init (options: CommandOptions) {

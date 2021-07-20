@@ -1,22 +1,19 @@
 import table from 'text-table'
 
-import { SingleCommand } from './command'
+import Command, { SingleCommand } from './command'
 
 class Renderer {
-  constructor (public config: SingleCommand) {}
+  constructor (public command: Command, public config: SingleCommand) {}
 
   render () {
     this.renderUsage()
-    this.renderDivider()
     this.renderCommand()
-    this.renderDivider()
     this.renderOption()
   }
 
   renderOption () {
     const options = this.config.options
 
-    console.log('Options:')
     const optionTable = table([
       ...options.map(option => {
         return [
@@ -25,24 +22,40 @@ class Renderer {
         ]
       })
     ])
-    console.log(optionTable)
+
+    if (options.length) {
+      console.log('Options:')
+      console.log(optionTable)
+    }
   }
 
   renderUsage () {
     const config = this.config
-    let usage = `Usage: ${config.name}`
+
+    const commandName = (() => {
+      let name = ''
+      let internalConfig = config
+      while (true) {
+        name = `${internalConfig.name}${name ? ` ${name}` : ''}`
+        if (!internalConfig.parent) break
+
+        internalConfig = internalConfig.parent
+      }
+      return name
+    })()
+
+    let usage = `Usage: ${commandName}`
 
     if (config.children?.find(ch => ch.options.length)) {
       usage += ' <command>'
     }
 
     console.log(usage)
+    this.renderDivider()
   }
 
   renderCommand () {
     const config = this.config
-
-    let commands = 'Commands:\n'
 
     const commandList = config.children?.map(ch => {
       if (ch.options.length) {
@@ -51,49 +64,16 @@ class Renderer {
       return null
     }).filter(Boolean) as string[][]
 
-    commands += table(commandList)
-
-    console.log(commands)
+    if (commandList.length) {
+      console.log('Commands:')
+      console.log(table(commandList))
+      this.renderDivider()
+    }
   }
 
   renderDivider () {
     console.log()
   }
 }
-
-const config = {
-  name: 'pero',
-  options: [
-    {
-      flagExpression: '-x',
-      description: '123123'
-    },
-    {
-      flagExpression: '-y',
-      description: '1231235432423'
-    }
-  ],
-  children: [
-    {
-      name: 'init',
-      description: 'abc',
-      options: [
-        {
-          flagExpression: '-x',
-          description: '123123'
-        },
-        {
-          flagExpression: '-y',
-          description: '1231235432423'
-        }
-      ],
-      children: []
-    }
-  ]
-} as unknown as SingleCommand
-
-// new Renderer().renderUsage(config)
-const renderer = new Renderer(config)
-renderer.render()
 
 export default Renderer
