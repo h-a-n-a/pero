@@ -1,9 +1,9 @@
 import table from 'text-table'
 
-import Command, { SingleCommand } from './command'
+import Pero, { Command } from './pero'
 
 class Renderer {
-  constructor (public command: Command, public config: SingleCommand) {}
+  constructor (public pero: Pero, public config: Command) {}
 
   render () {
     this.renderUsage()

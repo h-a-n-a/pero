@@ -1,7 +1,9 @@
-export default (option) => {
-  option('-r', '123123', false)
+import { Option, Argument } from '../../../src'
 
-  return () => {
+export default (option: Option) => {
+  option('-r', '123123')
 
+  return (args: Argument) => {
+    console.log(args)
   }
 }

@@ -7,6 +7,7 @@ import { getRoute, RouteOptions, Route } from './route'
 
 interface CompileOptions extends RouteOptions {
   outDir: string
+  name?: string
 }
 
 const PERO_CLI_EMIT_DIRECTORY_NAME = 'pero-cli'
@@ -75,10 +76,11 @@ class Compiler {
       stdin: {
         contents: `
             import path from 'path'
-            import Command from './command' 
+            import Pero from './pero' 
             
-            const cli = Command.init({
-              root: path.resolve(__dirname, '${PERO_CLI_EMIT_DIRECTORY_NAME}') 
+            const cli = Pero.init({
+              root: path.resolve(__dirname, '${PERO_CLI_EMIT_DIRECTORY_NAME}'),
+              name: '${this.options.name}'
             })
             
             // console.log(JSON.stringify(cli.registeredCommands, null, 4))

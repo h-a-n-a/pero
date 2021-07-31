@@ -1,36 +1,38 @@
-import assert from 'assert'
 import mri, { Argv } from 'mri'
 
 import Renderer from './renderer'
 import { RouteOptions, Route, getRoute } from './route'
 import { getEntryDefault } from './exec'
+import { kebabKeyToCamelCase } from './utils'
 
-interface CommandOptions extends RouteOptions {
+interface PeroOptions extends RouteOptions {
   /**
    * CLI Name
    */
-  name: string
+  name?: string
 }
 
-interface SingleCommandOption {
+interface CommandOption {
   flagExpression: string
   description: string
 }
 
-type ActionFunction = () => void
+export type Argument = { [K: string]: any }
 
-type CommandFunction = (option: Command['option']) => ActionFunction
+type ActionFunction = (argument: Argument, command: Command) => void
 
-export interface SingleCommand {
+type CommandFunction = (option: Pero['option']) => ActionFunction
+
+export interface Command {
   name: string
   description: string
-  options: SingleCommandOption[]
+  options: CommandOption[]
   action: ActionFunction
-  children: SingleCommand[]
-  parent: SingleCommand | null
+  children: Command[]
+  parent: Command | null
 }
 
-const createSingleCommand = (commandName: string): SingleCommand => ({
+const createCommand = (commandName: string): Command => ({
   name: commandName,
   description: '',
   options: [],
@@ -41,19 +43,19 @@ const createSingleCommand = (commandName: string): SingleCommand => ({
 
 const DEFAULT_CLI_NAME = 'pero-cli'
 
-class Command {
+class Pero {
   private readonly routes: Route[]
 
-  private readonly registeredCommands: SingleCommand
-  private registeringCommand: SingleCommand | null = null
+  private readonly registeredCommands: Command
+  private registeringCommand: Command | null = null
 
-  constructor (private options: CommandOptions) {
+  constructor (private options: PeroOptions) {
     this.routes = getRoute({
       root: options.root,
       ignorePattern: options.ignorePattern
     })
 
-    this.registeredCommands = createSingleCommand(this.options.name || DEFAULT_CLI_NAME)
+    this.registeredCommands = createCommand(this.options.name || DEFAULT_CLI_NAME)
     this.registeringCommand = this.registeredCommands
     this.registerCommand(this.routes)
   }
@@ -63,7 +65,7 @@ class Command {
 
     for (const r of routes) {
       if (r.isDir) {
-        const registeredCommands = createSingleCommand(r.name)
+        const registeredCommands = createCommand(r.name)
 
         registeredCommands.parent = this.registeringCommand
 
@@ -103,8 +105,15 @@ class Command {
     argv = argv.slice(2)
     const parsedArgv = mri(argv)
     const commands = parsedArgv._
+    const options = (() => {
+      const raw = {
+        ...parsedArgv
+      } as Omit<mri.Argv, '_'>
+      delete raw._
+      return raw
+    })()
 
-    const findMatchedCommands = (registeredCommands: SingleCommand, commands: Argv['_']): SingleCommand => {
+    const findMatchedCommands = (registeredCommands: Command, commands: Argv['_']): Command => {
       const targetCommand = commands[0]
 
       // bailout if command is not exist
@@ -118,21 +127,25 @@ class Command {
         }
       }
 
-      assert(false, 'Command not found')
+      console.log('Command not found')
+      process.exit(1)
     }
 
     const targetCommand = findMatchedCommands(this.registeredCommands, commands)
 
-    targetCommand.action()
-
-    console.log(targetCommand)
+    targetCommand.action({
+      ...options,
+      ...kebabKeyToCamelCase(options)
+    }, targetCommand)
 
     new Renderer(this, targetCommand).render()
   }
 
-  static init (options: CommandOptions) {
-    return new Command(options)
+  static init (options: PeroOptions) {
+    return new Pero(options)
   }
 }
 
-export default Command
+export type Option = Pero['option']
+
+export default Pero
