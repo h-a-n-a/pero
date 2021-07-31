@@ -1,7 +1,7 @@
 {
   "name": "pero",
   "version": "0.1.0",
-  "description": "declarative cli generator",
+  "description": "Route based CLI tool",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
