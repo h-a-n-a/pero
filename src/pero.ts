@@ -1,6 +1,7 @@
 import mri, { Argv } from 'mri'
 
 import Renderer from './renderer'
+import Command, { ActionFunction } from './command'
 import { RouteOptions, Route, getRoute } from './route'
 import { getEntryDefault } from './exec'
 import { kebabKeyToCamelCase } from './utils'
@@ -12,34 +13,7 @@ interface PeroOptions extends RouteOptions {
   name?: string
 }
 
-interface CommandOption {
-  flagExpression: string
-  description: string
-}
-
-export type Argument = { [K: string]: any }
-
-type ActionFunction = (argument: Argument, command: Command) => void
-
-type CommandFunction = (option: Pero['option']) => ActionFunction
-
-export interface Command {
-  name: string
-  description: string
-  options: CommandOption[]
-  action: ActionFunction
-  children: Command[]
-  parent: Command | null
-}
-
-const createCommand = (commandName: string): Command => ({
-  name: commandName,
-  description: '',
-  options: [],
-  action: () => {},
-  children: [],
-  parent: null
-})
+type CommandFunction = (command: Command) => ActionFunction
 
 const DEFAULT_CLI_NAME = 'pero-cli'
 
@@ -55,7 +29,9 @@ class Pero {
       ignorePattern: options.ignorePattern
     })
 
-    this.registeredCommands = createCommand(this.options.name || DEFAULT_CLI_NAME)
+    this.registeredCommands = new Command({
+      name: this.options.name || DEFAULT_CLI_NAME
+    })
     this.registeringCommand = this.registeredCommands
     this.registerCommand(this.routes)
   }
@@ -65,12 +41,16 @@ class Pero {
 
     for (const r of routes) {
       if (r.isDir) {
-        const registeredCommands = createCommand(r.name)
+        const registeredCommands = new Command({
+          name: r.name
+        })
 
         registeredCommands.parent = this.registeringCommand
 
         // register child command
-        this.registeringCommand?.children.push(registeredCommands)
+        this.registeringCommand?.children &&
+          this.registeringCommand.children.push(registeredCommands)
+
         // switch current working command
         this.registeringCommand = registeredCommands
 
@@ -86,19 +66,10 @@ class Pero {
 
       if (currentCommand) {
         currentCommand.action = defaultExport.apply(this, [
-         this.option.bind(this)
+         currentCommand
         ])
       }
     }
-  }
-
-  option (flagExpression: string, description: string) {
-    const currentCommand = this.registeringCommand
-
-    currentCommand?.options.push({
-      flagExpression,
-      description
-    })
   }
 
   parse (argv = process.argv) {
@@ -112,6 +83,8 @@ class Pero {
       delete raw._
       return raw
     })()
+
+    let argument: string[] = []
 
     const findMatchedCommands = (registeredCommands: Command, commands: Argv['_']): Command => {
       const targetCommand = commands[0]
@@ -127,15 +100,31 @@ class Pero {
         }
       }
 
-      console.log('Command not found')
+      // if arguments exist, make target command an argument, and bailout with the current command
+      if (registeredCommands.arguments.length) {
+        argument = commands.slice()
+        return registeredCommands
+      }
+
+      console.log(`Command ${commands.join(' ')} not found`)
       process.exit(1)
     }
 
     const targetCommand = findMatchedCommands(this.registeredCommands, commands)
 
+    const mergedArguments = targetCommand.arguments.reduce<{
+      [K: string]: string
+    }>((acc, curr, index) => {
+      return {
+        ...(acc || {}),
+        [curr.argumentKey]: argument[index]
+      }
+    }, {})
+
     targetCommand.action({
       ...options,
-      ...kebabKeyToCamelCase(options)
+      ...kebabKeyToCamelCase(options),
+      ...mergedArguments
     }, targetCommand)
 
     new Renderer(this, targetCommand).render()
@@ -145,7 +134,5 @@ class Pero {
     return new Pero(options)
   }
 }
-
-export type Option = Pero['option']
 
 export default Pero

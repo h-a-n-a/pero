@@ -1,6 +1,7 @@
 import table from 'text-table'
 
-import Pero, { Command } from './pero'
+import Pero from './pero'
+import Command from './command'
 
 class Renderer {
   constructor (public pero: Pero, public config: Command) {}

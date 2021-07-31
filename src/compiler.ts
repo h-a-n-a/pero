@@ -61,6 +61,7 @@ class Compiler {
       const buildOptions: BuildOptions = {
         entryPoints: [inputPath],
         bundle: true,
+        sourcemap: true,
         format: 'cjs',
         outfile: outPath.replace('.ts', '.js')
       }
@@ -89,6 +90,7 @@ class Compiler {
         resolveDir: path.resolve(__dirname)
       },
       platform: 'node',
+      sourcemap: true,
       format: 'cjs',
       outfile: path.join(outDir, PERO_RUNTIME_NAME),
       bundle: true
