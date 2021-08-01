@@ -77,14 +77,13 @@ class Compiler {
       stdin: {
         contents: `
             import path from 'path'
-            import Pero from './pero' 
+            import Pero from './pero'
             
             const cli = Pero.init({
               root: path.resolve(__dirname, '${PERO_CLI_EMIT_DIRECTORY_NAME}'),
               name: '${this.options.name}'
             })
             
-            // console.log(JSON.stringify(cli.registeredCommands, null, 4))
             cli.parse()
         `,
         resolveDir: path.resolve(__dirname)

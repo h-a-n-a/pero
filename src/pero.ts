@@ -135,4 +135,6 @@ class Pero {
   }
 }
 
+export { Pero }
+
 export default Pero
