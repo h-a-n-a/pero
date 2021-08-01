@@ -4,7 +4,7 @@ import Pero from './pero'
 import Command from './command'
 
 class Renderer {
-  constructor (public pero: Pero, public config: Command) {}
+  constructor (public config: Command) {}
 
   render () {
     this.renderUsage()
@@ -52,6 +52,8 @@ class Renderer {
     }
 
     console.log(usage)
+    console.log()
+    config.desc && console.log(config.desc)
     this.renderDivider()
   }
 
@@ -60,7 +62,7 @@ class Renderer {
 
     const commandList = config.children?.map(ch => {
       if (ch.options.length) {
-        return [ch.name, ch.description].filter(Boolean)
+        return [ch.name, ch.desc].filter(Boolean)
       }
       return null
     }).filter(Boolean) as string[][]

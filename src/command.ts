@@ -1,4 +1,5 @@
 import { parseArgument } from './utils'
+import Renderer from './renderer'
 
 export interface Option {
   flagExpression: string
@@ -26,7 +27,7 @@ interface CommandOptions {
 
 class Command {
   public name: string
-  public description: string
+  public desc: string
   public options: Option[]
   public action: ActionFunction
   public children: Command[]
@@ -36,11 +37,16 @@ class Command {
   constructor (command: CommandOptions) {
     this.action = command.action || (() => {})
     this.children = command.children || []
-    this.description = command.description || ''
+    this.desc = command.description || ''
     this.options = command.options || []
     this.parent = command.parent || null
     this.arguments = command.arguments || []
     this.name = command.name
+  }
+
+  description (desc: string) {
+    this.desc = desc
+    return this
   }
 
   option (flagExpression: string, description: string) {
@@ -67,6 +73,10 @@ class Command {
     })
 
     return this
+  }
+
+  help () {
+    new Renderer(this).render()
   }
 }
 

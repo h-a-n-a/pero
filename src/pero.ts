@@ -126,8 +126,10 @@ class Pero {
       ...kebabKeyToCamelCase(options),
       ...mergedArguments
     }, targetCommand)
+  }
 
-    new Renderer(this, targetCommand).render()
+  help (command?: Command) {
+    new Renderer(command || this.registeredCommands).render()
   }
 
   static init (options: PeroOptions) {
