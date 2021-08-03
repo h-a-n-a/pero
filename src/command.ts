@@ -72,6 +72,14 @@ class Command {
       ...parsedArgument
     })
 
+    this.arguments.sort((a1, a2) => {
+      if (a1.required && !a2.required) return -1
+
+      if (!a1.required && a2.required) return 1
+
+      return 0
+    })
+
     return this
   }
 
