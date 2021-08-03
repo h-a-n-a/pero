@@ -4,6 +4,11 @@ import Renderer from './renderer'
 export interface Option {
   flagExpression: string
   description: string
+  flags: string[]
+
+  // related to argument
+  required: boolean
+  argumentKey: string | null
 }
 
 interface Argument extends Option {
@@ -50,9 +55,15 @@ class Command {
   }
 
   option (flagExpression: string, description: string) {
+    const parsedArgument = parseArgument(flagExpression) ?? {
+      required: false,
+      argumentKey: null
+    }
+
     this.options.push({
       flagExpression,
-      description
+      description,
+      ...parsedArgument
     })
 
     return this
