@@ -18,7 +18,7 @@ class Renderer {
     const optionTable = table([
       ...options.map(option => {
         return [
-          option.flagExpression,
+          option.flagExp,
           option.description
         ]
       })

@@ -1,6 +1,6 @@
 import path from 'path'
 
-import { Compiler } from '../../src'
+import { Compiler } from '../../dist'
 
 (async () => {
   const compiler = new Compiler({

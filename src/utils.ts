@@ -49,7 +49,7 @@ export const parseArgument = (expression: string) => {
   return null
 }
 
-export const parseFlagExpression = (expression: string) => {
+export const parseFlagExp = (expression: string) => {
   const exp = expression.trim()
   let result: {
     flag: string | null
@@ -97,6 +97,7 @@ export const parseFlagExpression = (expression: string) => {
 
     if (breakIndex > cursor) {
       advance(breakIndex - cursor)
+      continue
     }
 
     advance(1)
@@ -115,14 +116,6 @@ export const parseFlagExpression = (expression: string) => {
     }
 
     if ((index = exp.indexOf(' ', start)) > 0) {
-      return index
-    }
-
-    if ((index = exp.indexOf('[', start)) > 0) {
-      return index
-    }
-
-    if ((index = exp.indexOf('<', start)) > 0) {
       return index
     }
 

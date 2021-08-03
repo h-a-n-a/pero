@@ -1,17 +1,23 @@
-import { parseArgument } from './utils'
+import { parseArgument, parseFlagExp } from './utils'
 import Renderer from './renderer'
 
-export interface Option {
-  flagExpression: string
-  description: string
-  flags: string[]
-
-  // related to argument
+interface Flag {
+  name: string
+  alias: string | null
   required: boolean
   argumentKey: string | null
 }
 
-interface Argument extends Option {
+export interface Option {
+  rawFlagExp: string
+  flagExp: string
+  description: string
+  flag: Flag
+}
+
+interface Argument {
+  flagExp: string
+  description: string
   argumentKey: string
   required: boolean
 }
@@ -39,6 +45,8 @@ class Command {
   public arguments: Argument[]
   public parent: Command | null
 
+  private flagHashMap: Record<string, boolean> = {}
+
   constructor (command: CommandOptions) {
     this.action = command.action || (() => {})
     this.children = command.children || []
@@ -54,31 +62,51 @@ class Command {
     return this
   }
 
-  option (flagExpression: string, description: string) {
-    const parsedArgument = parseArgument(flagExpression) ?? {
-      required: false,
-      argumentKey: null
+  option (flagExp: string, description: string) {
+    const { flag, flagAlias, required, argumentKey } = parseFlagExp(flagExp)
+
+    if (!flag) {
+      console.log(`option ${flagExp} is not valid`)
+      process.exit(1)
     }
 
+    if (this.flagHashMap[flag] || (flagAlias && this.flagHashMap[flagAlias])) {
+      console.log(`flag in option ${flagExp} conflicts with other option(s)`)
+      process.exit(1)
+    }
+
+    // record flag in hashmap
+    this.flagHashMap[flag] = true
+    flagAlias && (this.flagHashMap[flagAlias] = true)
+
     this.options.push({
-      flagExpression,
+      rawFlagExp: flagExp,
+      flagExp: `-${flag}${flagAlias ? `, --${flagAlias}` : ''} ${
+        argumentKey
+          ? required ? `<${argumentKey}>` : `[${argumentKey}]`
+          : ''}`,
       description,
-      ...parsedArgument
+      flag: {
+        name: flag,
+        alias: flagAlias,
+        required,
+        argumentKey
+      }
     })
 
     return this
   }
 
-  argument (flagExpression: string, description: string) {
-    const parsedArgument = parseArgument(flagExpression)
+  argument (flagExp: string, description: string) {
+    const parsedArgument = parseArgument(flagExp)
 
     if (!parsedArgument) {
-      console.log(`error on parsing argument: ${flagExpression}`)
+      console.log(`error on parsing argument: ${flagExp}`)
       process.exit(1)
     }
 
     this.arguments.push({
-      flagExpression,
+      flagExp,
       description,
       ...parsedArgument
     })
