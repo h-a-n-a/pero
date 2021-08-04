@@ -4,7 +4,7 @@ import Renderer from './renderer'
 import Command, { ActionFunction } from './command'
 import { RouteOptions, Route, getRoute } from './route'
 import { getEntryDefault } from './exec'
-import { kebabKeyToCamelCase } from './utils'
+import { kebabKeyToCamelCase, kebabToCamelCase } from './utils'
 
 interface PeroOptions extends RouteOptions {
   /**
@@ -121,11 +121,42 @@ class Pero {
       }
     }, {})
 
-    targetCommand.action({
+    const args = {
       ...options,
       ...kebabKeyToCamelCase(options),
       ...mergedArguments
-    }, targetCommand)
+    }
+
+    const flagArgument = targetCommand.flagArgumentMap
+
+    // validate
+    for (const [arg, argValue] of Object.entries(args)) {
+      const detail = flagArgument[arg]
+
+      if (!detail) {
+        console.log(`invalid flag \`${arg}\``)
+        process.exit(1)
+      }
+
+      // arguments
+      if (detail.type === 'argument' && detail.required && typeof argValue === 'undefined') {
+        console.log(`invalid argument \`${arg}\`, argument is required`)
+        process.exit(1)
+      }
+
+      // options
+      if (detail.required && typeof argValue === 'boolean') {
+        console.log(`invalid flag \`${arg}\`, argument \`${detail.argumentKey}\` is required`)
+        process.exit(1)
+      }
+
+      if (!detail.required && typeof argValue !== 'string') {
+        console.log(`invalid flag \`${arg}\`, argument should not be passed`)
+        process.exit(1)
+      }
+    }
+
+    targetCommand.action(args, targetCommand)
   }
 
   help (command?: Command) {

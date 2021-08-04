@@ -1,7 +1,8 @@
-import { parseArgument, parseFlagExp } from './utils'
+import { kebabToCamelCase, parseArgument, parseFlagExp } from './utils'
 import Renderer from './renderer'
 
 interface Flag {
+  type: 'flag'
   name: string
   alias: string | null
   required: boolean
@@ -16,6 +17,7 @@ export interface Option {
 }
 
 interface Argument {
+  type: 'argument'
   flagExp: string
   description: string
   argumentKey: string
@@ -45,7 +47,7 @@ class Command {
   public arguments: Argument[]
   public parent: Command | null
 
-  private flagHashMap: Record<string, boolean> = {}
+  public flagArgumentMap: Record<string, Flag | Argument> = {}
 
   constructor (command: CommandOptions) {
     this.action = command.action || (() => {})
@@ -63,23 +65,20 @@ class Command {
   }
 
   option (flagExp: string, description: string) {
-    const { flag, flagAlias, required, argumentKey } = parseFlagExp(flagExp)
+    const parsedFlag = parseFlagExp(flagExp)
+    const { flag, flagAlias, required, argumentKey } = parsedFlag
 
     if (!flag) {
-      console.log(`option ${flagExp} is not valid`)
+      console.log(`option \`${flagExp}\` is not valid`)
       process.exit(1)
     }
 
-    if (this.flagHashMap[flag] || (flagAlias && this.flagHashMap[flagAlias])) {
-      console.log(`flag in option ${flagExp} conflicts with other option(s)`)
+    if (this.flagArgumentMap[flag] || (flagAlias && this.flagArgumentMap[flagAlias])) {
+      console.log(`flag in option \`${flagExp}\` conflicts with other option(s)`)
       process.exit(1)
     }
 
-    // record flag in hashmap
-    this.flagHashMap[flag] = true
-    flagAlias && (this.flagHashMap[flagAlias] = true)
-
-    this.options.push({
+    const option = {
       rawFlagExp: flagExp,
       flagExp: `-${flag}${flagAlias ? `, --${flagAlias}` : ''} ${
         argumentKey
@@ -87,12 +86,20 @@ class Command {
           : ''}`,
       description,
       flag: {
+        type: 'flag',
         name: flag,
         alias: flagAlias,
         required,
         argumentKey
       }
-    })
+    } as const
+
+    // record flag in hashmap
+    this.flagArgumentMap[flag] = option.flag
+    flagAlias && (this.flagArgumentMap[flagAlias] = option.flag)
+    flagAlias && (this.flagArgumentMap[kebabToCamelCase(flagAlias)] = option.flag)
+
+    this.options.push(option)
 
     return this
   }
@@ -105,11 +112,16 @@ class Command {
       process.exit(1)
     }
 
-    this.arguments.push({
+    const argument = {
+      type: 'argument',
       flagExp,
       description,
       ...parsedArgument
-    })
+    } as const
+
+    this.flagArgumentMap[parsedArgument.argumentKey] = argument
+
+    this.arguments.push(argument)
 
     this.arguments.sort((a1, a2) => {
       if (a1.required && !a2.required) return -1

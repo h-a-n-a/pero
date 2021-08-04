@@ -3,10 +3,10 @@ import { Command, Args } from '../../../../src'
 export default (command: Command) => {
   command
     .description('build an app')
-    .argument('<something>', 'something')
     .argument('[test]', 'name')
+    .argument('<something>', 'something')
     .option('-c, --cheese <type>', 'chess')
-    .option('-v, --version', 'version')
+    .option('-v, --pizza-type <test>', 'version')
 
   return (args: Args) => {
     console.log(args)
