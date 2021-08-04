@@ -6,7 +6,7 @@ export default (command: Command) => {
     .argument('[test]', 'name')
     .argument('<something>', 'something')
     .option('-d', 'dessert')
-    .option('-c, --cheese <type>', 'chess')
+    .option('-c, --cheese', 'chess')
     .option('-v, --pizza-type <test>', 'version')
 
   return (args: Args) => {

@@ -4,6 +4,9 @@
   "description": "Route based CLI tool",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "esno ./build/index.ts && tsc --emitDeclarationOnly --outDir dist",
     "prepublishOnly": "pnpm build"

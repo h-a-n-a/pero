@@ -69,12 +69,12 @@ class Command {
     const { flag, flagAlias, required, argumentKey } = parsedFlag
 
     if (!flag) {
-      console.log(`option \`${flagExp}\` is not valid`)
+      console.log(`option registration error: option \`${flagExp}\` is not valid, short-flag is required`)
       process.exit(1)
     }
 
     if (this.flagArgumentMap[flag] || (flagAlias && this.flagArgumentMap[flagAlias])) {
-      console.log(`flag in option \`${flagExp}\` conflicts with other option(s)`)
+      console.log(`option registration error: flag in option \`${flagExp}\` conflicts with other option(s)`)
       process.exit(1)
     }
 
@@ -108,7 +108,7 @@ class Command {
     const parsedArgument = parseArgument(flagExp)
 
     if (!parsedArgument) {
-      console.log(`error on parsing argument: ${flagExp}`)
+      console.log(`argument registration error: error on parsing argument: ${flagExp}`)
       process.exit(1)
     }
 
