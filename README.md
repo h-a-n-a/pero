@@ -2,6 +2,9 @@
 <h1 align="center">Pero</h1>
 <p align="center">Route based CLI tool for creating large scale command line interfaces.</p>
 <p align="center">
+    <a href="https://github.com/h-a-n-a/pero/actions">
+        <img src="https://img.shields.io/github/workflow/status/h-a-n-a/pero/ci.svg" alt="Build Status">
+    </a>
     <a href="https://npmjs.com/package/pero">
         <img src="https://img.shields.io/npm/v/pero.svg" alt="npm-v">
     </a>
