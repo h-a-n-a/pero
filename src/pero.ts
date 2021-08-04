@@ -154,8 +154,6 @@ class Pero {
         process.exit(1)
       }
 
-      console.log(detail)
-
       if (!detail.required && detail.argumentKey && typeof argValue !== 'string') {
         console.log(`invalid flag \`${arg}\`, argument should not be passed`)
         process.exit(1)
