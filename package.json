@@ -1,9 +1,12 @@
 {
   "name": "pero",
-  "version": "0.2.0",
+  "version": "0.2.1-alpha.1",
   "description": "Route based CLI tool",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "esno ./build/index.ts && tsc --emitDeclarationOnly --outDir dist",
     "prepublishOnly": "pnpm build"

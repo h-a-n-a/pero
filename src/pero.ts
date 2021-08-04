@@ -76,13 +76,6 @@ class Pero {
     argv = argv.slice(2)
     const parsedArgv = mri(argv)
     const commands = parsedArgv._
-    const options = (() => {
-      const raw = {
-        ...parsedArgv
-      } as Omit<mri.Argv, '_'>
-      delete raw._
-      return raw
-    })()
 
     let argument: string[] = []
 
@@ -121,38 +114,64 @@ class Pero {
       }
     }, {})
 
+    const flagArgument = targetCommand.flagArgumentMap
+
+    const options = (() => {
+      const raw = {
+        ...parsedArgv
+      } as Omit<mri.Argv, '_'>
+      delete raw._
+
+      // map flag <-> flagAlias
+      for (const [flag, flagValue] of Object.entries(raw)) {
+        const detail = flagArgument[flag]
+        if (detail?.type === 'flag') {
+          detail.alias && (raw[detail.alias] = flagValue)
+          detail.name && (raw[detail.name] = flagValue)
+        }
+      }
+
+      return raw
+    })()
+
     const args = {
       ...options,
       ...kebabKeyToCamelCase(options),
       ...mergedArguments
     }
 
-    const flagArgument = targetCommand.flagArgumentMap
-
     // validate
     for (const [arg, argValue] of Object.entries(args)) {
       const detail = flagArgument[arg]
 
       if (!detail) {
-        console.log(`invalid flag \`${arg}\``)
+        console.log(`flag \`${arg}\` not found`)
         process.exit(1)
       }
 
       // arguments
-      if (detail.type === 'argument' && detail.required && typeof argValue === 'undefined') {
-        console.log(`invalid argument \`${arg}\`, argument is required`)
-        process.exit(1)
+      if (detail.type === 'argument') {
+        if (detail.required && typeof argValue === 'undefined') {
+          console.log(`invalid argument \`${arg}\`, argument is required`)
+          process.exit(1)
+        }
+        continue
       }
 
       // options
-      if (detail.required && typeof argValue === 'boolean') {
-        console.log(`invalid flag \`${arg}\`, argument \`${detail.argumentKey}\` is required`)
-        process.exit(1)
-      }
 
-      if (!detail.required && typeof argValue !== 'string') {
-        console.log(`invalid flag \`${arg}\`, argument should not be passed`)
-        process.exit(1)
+      if (detail.argumentKey) {
+        // eg. `-p, --pizza-type <type>`
+        if (detail.required && typeof argValue === 'boolean') {
+          console.log(`invalid flag \`${arg}\`, argument \`${detail.argumentKey}\` is required`)
+          process.exit(1)
+        }
+      } else {
+        // eg. `-p, --pizza-type`
+        if (typeof argValue !== 'boolean') {
+          console.log(`invalid flag \`${arg}\`, argument should not be passed`)
+          process.exit(1)
+        }
       }
     }
 

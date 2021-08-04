@@ -5,7 +5,8 @@ export default (command: Command) => {
     .description('build an app')
     .argument('[test]', 'name')
     .argument('<something>', 'something')
-    .option('-c, --cheese <type>', 'chess')
+    .option('-d', 'dessert')
+    .option('-c, --cheese', 'chess')
     .option('-v, --pizza-type <test>', 'version')
 
   return (args: Args) => {
