@@ -1,12 +1,25 @@
-import { parseArgument } from './utils'
+import { kebabToCamelCase, parseArgument, parseFlagExp } from './utils'
 import Renderer from './renderer'
 
-export interface Option {
-  flagExpression: string
-  description: string
+interface Flag {
+  type: 'flag'
+  name: string
+  alias: string | null
+  required: boolean
+  argumentKey: string | null
 }
 
-interface Argument extends Option {
+export interface Option {
+  rawFlagExp: string
+  flagExp: string
+  description: string
+  flag: Flag
+}
+
+interface Argument {
+  type: 'argument'
+  flagExp: string
+  description: string
   argumentKey: string
   required: boolean
 }
@@ -34,6 +47,8 @@ class Command {
   public arguments: Argument[]
   public parent: Command | null
 
+  public flagArgumentMap: Record<string, Flag | Argument> = {}
+
   constructor (command: CommandOptions) {
     this.action = command.action || (() => {})
     this.children = command.children || []
@@ -49,27 +64,71 @@ class Command {
     return this
   }
 
-  option (flagExpression: string, description: string) {
-    this.options.push({
-      flagExpression,
-      description
-    })
+  option (flagExp: string, description: string) {
+    const parsedFlag = parseFlagExp(flagExp)
+    const { flag, flagAlias, required, argumentKey } = parsedFlag
+
+    if (!flag) {
+      console.log(`option \`${flagExp}\` is not valid`)
+      process.exit(1)
+    }
+
+    if (this.flagArgumentMap[flag] || (flagAlias && this.flagArgumentMap[flagAlias])) {
+      console.log(`flag in option \`${flagExp}\` conflicts with other option(s)`)
+      process.exit(1)
+    }
+
+    const option = {
+      rawFlagExp: flagExp,
+      flagExp: `-${flag}${flagAlias ? `, --${flagAlias}` : ''} ${
+        argumentKey
+          ? required ? `<${argumentKey}>` : `[${argumentKey}]`
+          : ''}`,
+      description,
+      flag: {
+        type: 'flag',
+        name: flag,
+        alias: flagAlias,
+        required,
+        argumentKey
+      }
+    } as const
+
+    // record flag in hashmap
+    this.flagArgumentMap[flag] = option.flag
+    flagAlias && (this.flagArgumentMap[flagAlias] = option.flag)
+    flagAlias && (this.flagArgumentMap[kebabToCamelCase(flagAlias)] = option.flag)
+
+    this.options.push(option)
 
     return this
   }
 
-  argument (flagExpression: string, description: string) {
-    const parsedArgument = parseArgument(flagExpression)
+  argument (flagExp: string, description: string) {
+    const parsedArgument = parseArgument(flagExp)
 
     if (!parsedArgument) {
-      console.log(`error on parsing argument: ${flagExpression}`)
+      console.log(`error on parsing argument: ${flagExp}`)
       process.exit(1)
     }
 
-    this.arguments.push({
-      flagExpression,
+    const argument = {
+      type: 'argument',
+      flagExp,
       description,
       ...parsedArgument
+    } as const
+
+    this.flagArgumentMap[parsedArgument.argumentKey] = argument
+
+    this.arguments.push(argument)
+
+    this.arguments.sort((a1, a2) => {
+      if (a1.required && !a2.required) return -1
+
+      if (!a1.required && a2.required) return 1
+
+      return 0
     })
 
     return this

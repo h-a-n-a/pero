@@ -18,7 +18,7 @@ class Renderer {
     const optionTable = table([
       ...options.map(option => {
         return [
-          option.flagExpression,
+          `  ${option.flagExp}`,
           option.description
         ]
       })
@@ -26,6 +26,7 @@ class Renderer {
 
     if (options.length) {
       console.log('Options:')
+      console.log()
       console.log(optionTable)
     }
   }
@@ -53,7 +54,7 @@ class Renderer {
 
     console.log(usage)
     console.log()
-    config.desc && console.log(config.desc)
+    config.desc && console.log(`  ${config.desc}`)
     this.renderDivider()
   }
 

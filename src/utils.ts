@@ -48,3 +48,77 @@ export const parseArgument = (expression: string) => {
 
   return null
 }
+
+export const parseFlagExp = (expression: string) => {
+  const exp = expression.trim()
+  let result: {
+    flag: string | null
+    flagAlias: string | null
+    required: boolean
+    argumentKey: string | null
+  } = {
+    flag: null,
+    flagAlias: null,
+    required: false,
+    argumentKey: null
+  }
+
+  let cursor = 0
+
+  while (cursor < exp.length) {
+    const breakIndex = getBreakIndex(cursor)
+
+    if (exp.startsWith('-', cursor)) {
+      const next = exp[cursor + 1]
+      const advancement = next === '-' ? 2 : 1
+      const flagStart = cursor + advancement
+
+      if (next === '-') {
+        result.flagAlias = exp.slice(flagStart, breakIndex)
+      } else {
+        result.flag = exp.slice(flagStart, breakIndex)
+      }
+
+      advance(breakIndex - flagStart + advancement)
+      continue
+    }
+
+    if (exp.startsWith('[', cursor) || exp.startsWith('<', cursor)) {
+      const match = parseArgument(exp.slice(cursor))
+      if (match?.argumentKey) {
+        advance(match.argumentKey.length + 2 /* open/close symbol */)
+        result = {
+          ...result,
+          ...match
+        }
+      }
+      continue
+    }
+
+    if (breakIndex > cursor) {
+      advance(breakIndex - cursor)
+      continue
+    }
+
+    advance(1)
+  }
+
+  return result
+
+  function advance (steps: number) {
+    cursor += steps
+  }
+
+  function getBreakIndex (start: number) {
+    let index
+    if ((index = exp.indexOf(',', start)) > 0) {
+      return index
+    }
+
+    if ((index = exp.indexOf(' ', start)) > 0) {
+      return index
+    }
+
+    return exp.length
+  }
+}
