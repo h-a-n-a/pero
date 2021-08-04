@@ -5,7 +5,8 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "esno ./build/index.ts && tsc --emitDeclarationOnly --outDir dist"
+    "build": "esno ./build/index.ts && tsc --emitDeclarationOnly --outDir dist",
+    "prepublishOnly": "pnpm build"
   },
   "repository": {
     "type": "git",
