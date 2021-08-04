@@ -5,6 +5,7 @@ export default (command: Command) => {
     .description('build an app')
     .argument('[test]', 'name')
     .argument('<something>', 'something')
+    .option('-d', 'dessert')
     .option('-c, --cheese <type>', 'chess')
     .option('-v, --pizza-type <test>', 'version')
 

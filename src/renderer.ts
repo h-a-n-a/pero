@@ -26,7 +26,6 @@ class Renderer {
 
     if (options.length) {
       console.log('Options:')
-      console.log()
       console.log(optionTable)
     }
   }
@@ -49,13 +48,16 @@ class Renderer {
     let usage = `Usage: ${commandName}`
 
     if (config.children?.find(ch => ch.options.length)) {
-      usage += ' <command>'
+      usage += ' [command]'
     }
 
     console.log(usage)
+
+    if (config.desc) {
+      console.log()
+      console.log(`  ${config.desc}`)
+    }
     console.log()
-    config.desc && console.log(`  ${config.desc}`)
-    this.renderDivider()
   }
 
   renderCommand () {
@@ -63,7 +65,7 @@ class Renderer {
 
     const commandList = config.children?.map(ch => {
       if (ch.options.length) {
-        return [ch.name, ch.desc].filter(Boolean)
+        return [`  ${ch.name}`, ch.desc].filter(Boolean)
       }
       return null
     }).filter(Boolean) as string[][]
@@ -71,12 +73,8 @@ class Renderer {
     if (commandList.length) {
       console.log('Commands:')
       console.log(table(commandList))
-      this.renderDivider()
+      console.log()
     }
-  }
-
-  renderDivider () {
-    console.log()
   }
 }
 

@@ -139,18 +139,24 @@ class Pero {
       }
 
       // arguments
-      if (detail.type === 'argument' && detail.required && typeof argValue === 'undefined') {
-        console.log(`invalid argument \`${arg}\`, argument is required`)
-        process.exit(1)
+      if (detail.type === 'argument') {
+        if (detail.required && typeof argValue === 'undefined') {
+          console.log(`invalid argument \`${arg}\`, argument is required`)
+          process.exit(1)
+        }
+        continue
       }
 
       // options
+      // eg. -p --pizza-type <type>
       if (detail.required && typeof argValue === 'boolean') {
         console.log(`invalid flag \`${arg}\`, argument \`${detail.argumentKey}\` is required`)
         process.exit(1)
       }
 
-      if (!detail.required && typeof argValue !== 'string') {
+      console.log(detail)
+
+      if (!detail.required && detail.argumentKey && typeof argValue !== 'string') {
         console.log(`invalid flag \`${arg}\`, argument should not be passed`)
         process.exit(1)
       }
