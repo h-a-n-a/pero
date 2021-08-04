@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.2.1-alpha.0](https://github.com/h-a-n-a/pero/compare/v0.2.0...v0.2.1-alpha.0) (2021-08-04)
+
+
+### Bug Fixes
+
+* fix argument validation ([caf4d3b](https://github.com/h-a-n-a/pero/commit/caf4d3bd776474343d292f25f7ccb122628e7499))
+
 ## [0.2.0](https://github.com/h-a-n-a/pero/compare/v0.1.0...v0.2.0) (2021-08-04)
 
 
