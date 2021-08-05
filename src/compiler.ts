@@ -5,10 +5,12 @@ import { BuildResult, BuildOptions } from 'esbuild'
 
 import { getRoute, RouteOptions, Route } from './route'
 
-interface CompileOptions extends RouteOptions {
+interface CompilerOptions extends RouteOptions {
   outDir: string
   name?: string
 }
+
+interface CompileOptions extends Pick<BuildOptions, 'external' | 'bundle'> {}
 
 const PERO_CLI_EMIT_DIRECTORY_NAME = 'pero-cli'
 const PERO_RUNTIME_NAME = 'pero.js'
@@ -16,20 +18,21 @@ const PERO_RUNTIME_NAME = 'pero.js'
 class Compiler {
   private readonly cliPath: string
 
-  constructor (public options: CompileOptions) {
+  constructor (public options: CompilerOptions) {
     this.cliPath = path.join(this.options.outDir, PERO_CLI_EMIT_DIRECTORY_NAME)
   }
 
-  async compile () {
+  async compile (compileOptions: CompileOptions = {}) {
     const { outDir } = this.options
 
     if (existsSync(outDir)) rmdirSync(outDir, { recursive: true })
 
-    await this.compileRoutes()
+    await this.compileRoutes(compileOptions)
     await this.compileRuntime()
   }
 
-  compileRoutes () {
+  compileRoutes (compileOptions: CompileOptions) {
+    const { bundle, external } = compileOptions
     const { root, ignorePattern } = this.options
     const outDir = this.cliPath
 
@@ -60,7 +63,9 @@ class Compiler {
     function compileSingle (inputPath: string, outPath: string) {
       const buildOptions: BuildOptions = {
         entryPoints: [inputPath],
-        bundle: true,
+        platform: 'node',
+        bundle: bundle ?? true,
+        external,
         sourcemap: true,
         format: 'cjs',
         outfile: outPath.replace('.ts', '.js')
@@ -77,7 +82,7 @@ class Compiler {
       stdin: {
         contents: `
             import path from 'path'
-            import Pero from './pero'
+            import { Pero } from 'pero'
             
             const cli = Pero.init({
               root: path.resolve(__dirname, '${PERO_CLI_EMIT_DIRECTORY_NAME}'),

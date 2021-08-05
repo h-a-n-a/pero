@@ -4,8 +4,17 @@
   "description": "Route based CLI tool",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "bin": {
+    "pero": "./dist/cli/pero.js"
+  },
   "files": [
     "dist"
+  ],
+  "keywords": [
+    "cli",
+    "node",
+    "typescript",
+    "command-line"
   ],
   "scripts": {
     "build": "esno ./build/index.ts && tsc --emitDeclarationOnly --outDir dist",
@@ -48,6 +57,7 @@
     "@types/node": "^16.3.0",
     "@types/text-table": "^0.2.2",
     "cz-conventional-changelog": "^3.3.0",
+    "esbuild-plugin-d.ts": "^1.0.6",
     "eslint": "^7.30.0",
     "esno": "^0.8.0",
     "husky": "4",
