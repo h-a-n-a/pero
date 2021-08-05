@@ -1,6 +1,6 @@
 {
   "name": "pero",
-  "version": "0.3.0-alpha.0",
+  "version": "0.3.0",
   "description": "Route based CLI tool",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

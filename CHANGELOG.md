@@ -2,18 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-## [0.3.0-alpha.0](https://github.com/h-a-n-a/pero/compare/v0.2.1...v0.3.0-alpha.0) (2021-08-05)
+## [0.3.0](https://github.com/h-a-n-a/pero/compare/v0.2.1...v0.3.0) (2021-08-05)
 
 
 ### Features
 
 * add cli ([0a37fe2](https://github.com/h-a-n-a/pero/commit/0a37fe27c541e96c8e2657e0f687b7a6140febbe))
 
-### [0.2.1](https://github.com/h-a-n-a/pero/compare/v0.2.0...v0.2.1) (2021-08-04)
-
-### [0.2.1-alpha.1](https://github.com/h-a-n-a/pero/compare/v0.2.1-alpha.0...v0.2.1-alpha.1) (2021-08-04)
-
-### [0.2.1-alpha.0](https://github.com/h-a-n-a/pero/compare/v0.2.0...v0.2.1-alpha.0) (2021-08-04)
+## [0.2.1](https://github.com/h-a-n-a/pero/compare/v0.2.0...v0.2.1) (2021-08-04)
 
 
 ### Bug Fixes
