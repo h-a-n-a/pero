@@ -16,6 +16,7 @@
     "typescript",
     "command-line"
   ],
+  "sideEffects": false,
   "scripts": {
     "build": "esno ./build/index.ts && tsc --emitDeclarationOnly --outDir dist",
     "prepublishOnly": "pnpm build"
