@@ -11,6 +11,13 @@
 </p>
 
 
+## Why?
+
+Nowadays, we have commander.js and all the other cli tools to choose, but why we build **yet another cli tool** ? 
+
+In the real-world scenario, nested commands are so popular among large-scale projects. Pero is trying to solve this problem and also bring you with the progressive TypeScript support. 
+
+
 ## Feature
 
 - Route based, born to create nested CLI commands
@@ -77,41 +84,16 @@ In Pero, we have to two steps in our runtime:
 
 ### 4. Compile and run
 
-Pero CLI is currently under development, so you need to do the compilation yourself by adding a compiler.
-
-Add `compile.ts` in the root of the whole project, and your project topography will look like this:
-
-```
-.
-├── src
-│   └── index.ts
-└── compile.ts
+```bash
+npx pero src --name "name-your-cli"
 ```
 
-Add some code for compilation:
-
-```typescript
-import path from 'path'
-
-import { Compiler } from 'pero'
-
-(async () => {
-  const compiler = new Compiler({
-    outDir: path.resolve(__dirname, './dist'),
-    root: path.resolve(__dirname, 'src'),
-    name: 'name-your-cli'
-  })
-
-  await compiler.compile()
-})()
-```
-
-Compiled CLI will be emitted to the `outDir` you defined above.
+Your CLI will be emitted to `dist`
 
 Run the code below, you will get the corresponding help message in the terminal.
 
 ```bash
-node ./dist/index.js
+node ./dist/pero.js
 ```
 
 
@@ -151,4 +133,4 @@ Special thanks to @yisar132 for the logo, it's great!
 
 ## LICENSE
 
-MIT
+[MIT](./LICENSE) License © 2021 [H](https://github.com/h-a-n-a)
