@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.3.1](https://github.com/h-a-n-a/pero/compare/v0.3.0...v0.3.1) (2021-08-08)
+
+
+### Features
+
+* optimize cli ([#5](https://github.com/h-a-n-a/pero/issues/5)) ([228538a](https://github.com/h-a-n-a/pero/commit/228538a4054b411302d846a70b304018fa693270))
+
 ## [0.3.0](https://github.com/h-a-n-a/pero/compare/v0.2.1...v0.3.0) (2021-08-05)
 
 
